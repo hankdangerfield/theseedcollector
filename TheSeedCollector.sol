@@ -1,11 +1,8 @@
 /**
- *Submitted for verification at BscScan.com on 2022-04-18
+ *Submitted for verification at BscScan.com on 2022-08-12
 */
 
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (token/ERC20/IERC20.sol)
-/**
-@dev Interface of the ERC20 standard as defined in the EIP.
+/*
 █████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗█████╗
 ╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝╚════╝
                                                                                                 
@@ -35,6 +32,7 @@
 
 Website: https://theseedcollector.xyz
 Telegram: https://t.me/theseedcollector
+Discord: https://discord.gg/P7aTUpMbEv
 Twitter: https://twitter.com/Seed_Collector
 Facebook: https://www.facebook.com/gaming/TheSeedCollector84
 Medium: https://medium.com/the-seed-collector
@@ -43,7 +41,10 @@ Twitch: https://www.twitch.tv/theseedcollector
 YouTube: https://www.youtube.com/channel/UC8M5yc3k0UkeIeBsm8_EbOw
  */
 
-pragma solidity ^0.8.6;
+// SPDX-License-Identifier: MIT
+
+// OpenZeppelin Contracts (last updated v4.5.0) (token/ERC20/IERC20.sol)
+pragma solidity 0.8.6;
 
 interface IERC20 {
     /**
@@ -559,83 +560,6 @@ abstract contract Ownable is Context {
     }
 }
 
-
-abstract contract Pausable is Context {
-    /**
-     * @dev Emitted when the pause is triggered by `account`.
-     */
-    event Paused(address account);
-
-    /**
-     * @dev Emitted when the pause is lifted by `account`.
-     */
-    event Unpaused(address account);
-
-    bool private _paused;
-
-    /**
-     * @dev Initializes the contract in unpaused state.
-     */
-    constructor() {
-        _paused = false;
-    }
-
-    /**
-     * @dev Returns true if the contract is paused, and false otherwise.
-     */
-    function paused() public view virtual returns (bool) {
-        return _paused;
-    }
-
-    /**
-     * @dev Modifier to make a function callable only when the contract is not paused.
-     *
-     * Requirements:
-     *
-     * - The contract must not be paused.
-     */
-    modifier whenNotPaused() {
-        require(!paused(), "Pausable: paused");
-        _;
-    }
-
-    /**
-     * @dev Modifier to make a function callable only when the contract is paused.
-     *
-     * Requirements:
-     *
-     * - The contract must be paused.
-     */
-    modifier whenPaused() {
-        require(paused(), "Pausable: not paused");
-        _;
-    }
-
-    /**
-     * @dev Triggers stopped state.
-     *
-     * Requirements:
-     *
-     * - The contract must not be paused.
-     */
-    function _pause() internal virtual whenNotPaused {
-        _paused = true;
-        emit Paused(_msgSender());
-    }
-
-    /**
-     * @dev Returns to normal state.
-     *
-     * Requirements:
-     *
-     * - The contract must be paused.
-     */
-    function _unpause() internal virtual whenPaused {
-        _paused = false;
-        emit Unpaused(_msgSender());
-    }
-}
-
 interface IDEXRouter {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
@@ -690,14 +614,14 @@ interface IDEXFactory {
 }
 
 
-contract MyToken is Context, Ownable, Pausable, ERC20 {
+contract WORDS is Context, Ownable, ERC20 {
 
     event AutoLiquify(uint256 amountETH, uint256 amountTokens);
 
-    address WETH; // WETH, WBNB or destination network native wrapped token
+    address public WETH; // WETH, WBNB or destination network native wrapped token
 
-    address DEAD = 0x000000000000000000000000000000000000dEaD;
-    address ZERO = 0x0000000000000000000000000000000000000000;
+    address private DEAD = 0x000000000000000000000000000000000000dEaD;
+    address private ZERO = 0x0000000000000000000000000000000000000000;
 
     uint8 private _decimals;
     uint256 private _totalSupply;
@@ -707,16 +631,16 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
 
     // Detailed Fees
 
-    uint256 public liquidityFee;
-    uint256 public devFee;
-    uint256 public marketingFee;
-    uint256 public prizeFee;
-    uint256 public totalFee;
+    uint256 private liquidityFee;
+    uint256 private devFee;
+    uint256 private marketingFee;
+    uint256 private prizeFee;
+    uint256 private totalFee;
 
-    address[] receivers;
+    address[] public receivers;
 
-    uint256[] buyFees = [ 100, 300, 300, 500 ];
-    uint256[] sellFees = [ 100, 300, 300, 500 ];
+    uint256[] public buyFees = [ 100, 300, 300, 500 ];
+    uint256[] public sellFees = [ 100, 300, 300, 500 ];
 
     uint256 public BuytotalFee;
     uint256 public SelltotalFee;
@@ -724,8 +648,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
 
     // Max wallet & Transaction
 
-    uint256 public _maxBuyTxAmount;
-    uint256 public _maxSellTxAmount;
     uint256 public _maxWalletToken;
 
     // Fees receivers
@@ -744,7 +666,7 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
     uint256 public maxSwapSize;
     uint256 public tokensToSell;
 
-    bool inSwap;
+    bool public inSwap;
 
     modifier swapping() { inSwap = true; _; inSwap = false; }
 
@@ -760,8 +682,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         uint256 _swapThreshold,
         uint256 _maxSwapSize,
 
-        uint256 _maxBuyTx,
-        uint256 _maxSellTx,
         uint256 maxWalletToken_
 
     ) ERC20(name_, symbol_) {
@@ -771,7 +691,7 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         WETH = WETH_;
 
         receivers = [
-            address(this),
+            0x000000000000000000000000000000000000dEaD,
             msg.sender,
             msg.sender,
             msg.sender
@@ -789,8 +709,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
             SelltotalFee += sellFees[i];
         }
 
-        _maxBuyTxAmount = _totalSupply / 10000 * _maxBuyTx;
-        _maxSellTxAmount = _totalSupply / 10000 * _maxSellTx;
         _maxWalletToken = _totalSupply / 10000 * maxWalletToken_;
 
         swapThreshold = _totalSupply / 10000 * _swapThreshold;
@@ -822,7 +740,7 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         address from,
         address to,
         uint256 amount
-    ) internal whenNotPaused virtual override {
+    ) internal virtual override {
         require(from != address(0), "ERC20: transfer from the zero address");
 
         if (
@@ -854,15 +772,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         // Enforce max total fees
         if (totalFee > maxTotalFee) {
             totalFee = maxTotalFee;
-        }
-
-        // Checks max transaction limit
-        if(from == pair) {
-            require(amount <= _maxBuyTxAmount || isTxLimitExempt[to], "TX Limit Exceeded");
-        }
-
-        if(to == pair){
-            require(amount <= _maxSellTxAmount || isTxLimitExempt[from], "TX Limit Exceeded");
         }
 
         //Exchange tokens
@@ -994,14 +903,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         return _maxWalletToken;
     }
 
-    function checkMaxBuyTxAmount() external view returns (uint256) {
-        return _maxBuyTxAmount;
-    }
-
-    function checkMaxSellTxAmount() external view returns (uint256) {
-        return _maxSellTxAmount;
-    }
-
     function isNotInSwap() external view returns (bool) {
         return !inSwap;
     }
@@ -1023,12 +924,10 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
     }
 
     function setFeeReceivers(
-        address _autoLiquidityReceiver,
         address _devFeeReceiver,
         address _marketingFeeReceiver,
         address _prizeFeeReceiver
     ) external onlyOwner {
-        autoLiquidityReceiver = _autoLiquidityReceiver;
         marketingFeeReceiver = _marketingFeeReceiver;
         prizeFeeReceiver = _prizeFeeReceiver;
         devFeeReceiver = _devFeeReceiver;
@@ -1056,14 +955,6 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         _maxWalletToken = _totalSupply / (10000) * (value);
     }
 
-    function setMaxBuyTxPercent_base10000(uint256 value) external onlyOwner {
-        _maxBuyTxAmount = _totalSupply / (10000) * (value);
-    }
-
-    function setMaxSellTxPercent_base10000(uint256 value) external onlyOwner {
-        _maxSellTxAmount = _totalSupply / (10000) * (value);
-    }
-
     // Stuck Balances Functions
 
     function rescueToken(address tokenAddress, uint256 tokens) public onlyOwner returns (bool success) {
@@ -1080,7 +971,4 @@ contract MyToken is Context, Ownable, Pausable, ERC20 {
         useSellFees();
         _swapBack();
     }
-
-    function pause() external onlyOwner { _pause(); }
-    function unpause() external onlyOwner { _unpause(); }
 }
